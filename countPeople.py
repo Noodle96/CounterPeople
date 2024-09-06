@@ -5,7 +5,7 @@ import cv2
 from torchvision.transforms import functional as F
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
-
+import time
 # Cargar el modelo
 model = fasterrcnn_resnet50_fpn(pretrained=False)
 num_classes = 2  # 1 clase (persona) + fondo
@@ -13,7 +13,7 @@ in_features = model.roi_heads.box_predictor.cls_score.in_features
 model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
 # Cargar los pesos guardados
-model.load_state_dict(torch.load('fasterrcnn_person_detector.pth'))
+model.load_state_dict(torch.load('fasterrcnn_person_detector_10_epochs.pth'))
 model.eval()
 
 # Mover el modelo a la GPU si está disponible
@@ -24,7 +24,9 @@ model.to(device)
 def predict_and_draw_boxes_video(video_path, model, device, threshold=0.5):
     # Abrir el video
     cap = cv2.VideoCapture(video_path)
-    
+    # fps_counter = 0
+    # start_time = time.time()
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
@@ -63,6 +65,15 @@ def predict_and_draw_boxes_video(video_path, model, device, threshold=0.5):
         
         # Mostrar el frame con los cuadros delimitadores y el texto
         cv2.imshow('Person Detection', frame)
+
+        # Contar el número de fotogramas procesados
+        # fps_counter += 1
+        
+        # # Calcular el fps
+        # elapsed_time = time.time() - start_time
+        # if elapsed_time > 0:
+        #     fps = fps_counter / elapsed_time
+        #     print(f'FPS: {fps:.2f}')
         
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -73,6 +84,6 @@ def predict_and_draw_boxes_video(video_path, model, device, threshold=0.5):
 if __name__ == "__main__":
     # Realizar la predicción y dibujar los cuadros delimitadores en un video
     video_path = 0  # usa 0 para la cámara de la laptop o la ruta de un archivo de video
-    # video_path  = '/home/russell/git/CountPeople/video/videoTest.mp4'
+    #video_path  = '/home/russell/git/CountPeople/video/videoTest.mp4'
 
     predict_and_draw_boxes_video(video_path, model, device)
